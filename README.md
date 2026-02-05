@@ -8,7 +8,7 @@ Apache Subversion server with LDAP authentication on Oracle Linux 9.
 # docker-compose.yml
 services:
   subversion:
-    image: ghcr.io/intechcore/subversion-ldap-httpd:1.14.5
+    image: ghcr.io/intechcore/subversion-ldap-httpd:1.14.1
     ports:
       - "8080:8080"
     volumes:
@@ -19,7 +19,7 @@ services:
 
 ## Features
 
-- Apache Subversion 1.14.5
+- Apache Subversion 1.14.1
 - Apache HTTPD with mod_dav_svn
 - LDAP authentication support (mod_ldap)
 - Python 3 with python-ldap for LDAP sync scripts
@@ -40,15 +40,15 @@ Mount your configuration files:
 ## Building Locally
 
 ```bash
-./build.sh         # builds subversion-ldap-httpd:1.14.5
-./build.sh 1.14.5-2  # builds with custom tag
+./build.sh         # builds subversion-ldap-httpd:1.14.1
+./build.sh 1.14.1-2  # builds with custom tag
 ```
 
 ## Available Tags
 
 | Tag | Description |
 |-----|-------------|
-| `1.14.5` | Subversion 1.14.5 on Oracle Linux 9 |
+| `1.14.1` | Subversion 1.14.1 on Oracle Linux 9 |
 | `main` | Latest build from main branch |
 
 ## Building New Version
@@ -56,17 +56,17 @@ Mount your configuration files:
 Create a git tag:
 
 ```bash
-git tag v1.14.5
-git push origin v1.14.5
+git tag v1.14.1
+git push origin v1.14.1
 
 # For rebuilds with same SVN version
-git tag v1.14.5-2
-git push origin v1.14.5-2
+git tag v1.14.1-2
+git push origin v1.14.1-2
 ```
 
 GitHub Actions will automatically build and publish:
-- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.5`
-- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.5-2`
+- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.1`
+- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.1-2`
 
 ## Architecture
 
