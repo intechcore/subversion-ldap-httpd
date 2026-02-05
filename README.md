@@ -1,6 +1,6 @@
 # subversion-ldap-httpd
 
-Apache Subversion server with LDAP authentication on Oracle Linux 9.
+Apache Subversion server with LDAP authentication on Debian 13.
 
 ## Quick Start
 
@@ -8,18 +8,18 @@ Apache Subversion server with LDAP authentication on Oracle Linux 9.
 # docker-compose.yml
 services:
   subversion:
-    image: ghcr.io/intechcore/subversion-ldap-httpd:1.14.1
+    image: ghcr.io/intechcore/subversion-ldap-httpd:1.14.5
     ports:
       - "8080:8080"
     volumes:
       - ./repos:/svn/repos
       - ./authz:/svn/authz
-      - ./httpd.conf:/etc/httpd/conf/httpd.conf:ro
+      - ./apache2.conf:/etc/apache2/apache2.conf:ro
 ```
 
 ## Features
 
-- Apache Subversion 1.14.1
+- Apache Subversion 1.14.5
 - Apache HTTPD with mod_dav_svn
 - LDAP authentication support (mod_ldap)
 - Python 3 with python-ldap for LDAP sync scripts
@@ -32,23 +32,23 @@ Mount your configuration files:
 
 | Path | Description |
 |------|-------------|
-| `/etc/httpd/conf/httpd.conf` | Main Apache config |
-| `/etc/httpd/conf.d/*.conf` | Virtual hosts / SVN locations |
+| `/etc/apache2/apache2.conf` | Main Apache config |
+| `/etc/apache2/sites-enabled/*.conf` | Virtual hosts / SVN locations |
 | `/svn/authz/*.authz` | SVN authorization files |
 | `/svn/repos/*` | SVN repositories |
 
 ## Building Locally
 
 ```bash
-./build.sh         # builds subversion-ldap-httpd:1.14.1
-./build.sh 1.14.1-2  # builds with custom tag
+./build.sh         # builds subversion-ldap-httpd:1.14.5
+./build.sh 1.14.5-2  # builds with custom tag
 ```
 
 ## Available Tags
 
 | Tag | Description |
 |-----|-------------|
-| `1.14.1` | Subversion 1.14.1 on Oracle Linux 9 |
+| `1.14.5` | Subversion 1.14.5 on Debian 13 |
 | `main` | Latest build from main branch |
 
 ## Building New Version
@@ -56,22 +56,22 @@ Mount your configuration files:
 Create a git tag:
 
 ```bash
-git tag v1.14.1
-git push origin v1.14.1
+git tag v1.14.5
+git push origin v1.14.5
 
 # For rebuilds with same SVN version
-git tag v1.14.1-2
-git push origin v1.14.1-2
+git tag v1.14.5-2
+git push origin v1.14.5-2
 ```
 
 GitHub Actions will automatically build and publish:
-- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.1`
-- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.1-2`
+- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.5`
+- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.5-2`
 
 ## Architecture
 
 - Multi-arch: `linux/amd64`, `linux/arm64`
-- Base image: `oraclelinux:9`
+- Base image: `debian:trixie-slim`
 - User: `intechcore` (UID 1000)
 
 ## License
