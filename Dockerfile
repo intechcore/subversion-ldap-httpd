@@ -10,7 +10,6 @@ RUN apt-get update && \
         subversion \
         apache2 \
         libapache2-mod-svn \
-        libapache2-mod-authnz-external \
         python3 \
         python3-ldap \
         curl \
@@ -18,21 +17,31 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Enable required Apache modules
-RUN a2enmod dav dav_svn ldap authnz_ldap
+RUN a2enmod dav dav_svn ldap authnz_ldap headers rewrite
 
+# Disable default site
+RUN a2dissite 000-default
+
+# Create user
 RUN groupadd -g 1000 intechcore && \
     useradd -u 1000 -m -g intechcore intechcore
 
-RUN mkdir -p /svn/repos /svn/authz && \
+# Configure Apache to run as intechcore
+RUN sed -i 's/export APACHE_RUN_USER=www-data/export APACHE_RUN_USER=intechcore/' /etc/apache2/envvars && \
+    sed -i 's/export APACHE_RUN_GROUP=www-data/export APACHE_RUN_GROUP=intechcore/' /etc/apache2/envvars
+
+# Set Apache to listen on 8080
+RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
+
+# Create directories and set permissions
+RUN mkdir -p /svn/repos /var/run/apache2 /var/lock/apache2 && \
     chown -R intechcore:intechcore /svn && \
     chown -R intechcore:intechcore /run/apache2 && \
     chown -R intechcore:intechcore /var/run/apache2 && \
     chown -R intechcore:intechcore /etc/apache2 && \
     chown -R intechcore:intechcore /var/log/apache2 && \
-    chown -R intechcore:intechcore /var/lock/apache2
-
-# Set Apache to listen on 8080
-RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
+    chown -R intechcore:intechcore /var/lock/apache2 && \
+    chown -R intechcore:intechcore /var/www/html
 
 EXPOSE 8080
 
