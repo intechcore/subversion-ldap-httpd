@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "packageRules": [
+    {
+      "description": "Disable updates for debian:stable-slim (floating tag, always current)",
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["debian"],
+      "enabled": false
+    }
+  ]
+}

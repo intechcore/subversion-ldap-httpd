@@ -46,7 +46,8 @@ RUN mkdir -p /svn/repos /var/run/apache2 /var/lock/apache2 && \
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=10s --timeout=3s CMD curl --fail http://localhost:8080/ || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8080/ || exit 1
 
 USER intechcore
 ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
