@@ -1,9 +1,10 @@
-FROM debian:trixie-slim
+FROM debian:stable-slim
 
 LABEL maintainer="Sergey Grigoriev <s.grigoriev@intechcore.com>"
 LABEL org.opencontainers.image.description="Apache Subversion with LDAP authentication on Debian 13"
 
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         vim \
         mc \

@@ -44,16 +44,18 @@ Mount your configuration files:
 ./build.sh 1.14.5-2  # builds with custom tag
 ```
 
-## Available Tags
+## Testing
 
-| Tag | Description |
-|-----|-------------|
-| `1.14.5` | Subversion 1.14.5 on Debian 13 |
-| `main` | Latest build from main branch |
+Smoke tests verify the image before push (run automatically in CI):
 
-## Building New Version
+```bash
+./build.sh
+./tests/test-image.sh subversion-ldap-httpd:1.14.5
+```
 
-Create a git tag:
+## Releasing New Versions
+
+Create a git tag to trigger build, test, and push to registry:
 
 ```bash
 git tag v1.14.5
@@ -64,9 +66,7 @@ git tag v1.14.5-2
 git push origin v1.14.5-2
 ```
 
-GitHub Actions will automatically build and publish:
-- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.5`
-- `ghcr.io/intechcore/subversion-ldap-httpd:1.14.5-2`
+Push to `main` and PRs only run build + smoke tests without pushing to registry.
 
 ## Architecture
 
