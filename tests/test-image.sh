@@ -42,7 +42,7 @@ fi
 
 # --- Test 2: Apache modules loaded ---
 echo "[2/6] Required Apache modules enabled"
-MODULES_OUTPUT=$(docker run --rm "$IMAGE" apache2ctl -M 2>&1) || true
+MODULES_OUTPUT=$(docker run --rm --entrypoint "" "$IMAGE" apache2ctl -M 2>&1) || true
 ALL_FOUND=true
 for mod in dav_module dav_svn_module ldap_module authnz_ldap_module; do
     if echo "$MODULES_OUTPUT" | grep -q "$mod"; then
@@ -58,7 +58,7 @@ fi
 
 # --- Test 3: Runs as non-root ---
 echo "[3/6] Runs as non-root user"
-RUN_USER=$(docker run --rm "$IMAGE" id -un 2>&1)
+RUN_USER=$(docker run --rm --entrypoint "" "$IMAGE" id -un 2>&1)
 if [ "$RUN_USER" = "intechcore" ]; then
     pass "Runs as user 'intechcore'"
 else
@@ -99,8 +99,8 @@ fi
 
 # --- Test 6: svnserve binary present ---
 echo "[6/6] Subversion binaries present"
-if docker run --rm "$IMAGE" svn --version --quiet > /dev/null 2>&1; then
-    SVN_VER=$(docker run --rm "$IMAGE" svn --version --quiet 2>&1)
+if docker run --rm --entrypoint "" "$IMAGE" svn --version --quiet > /dev/null 2>&1; then
+    SVN_VER=$(docker run --rm --entrypoint "" "$IMAGE" svn --version --quiet 2>&1)
     pass "svn $SVN_VER is installed"
 else
     fail "svn binary not found"
