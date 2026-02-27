@@ -6,13 +6,16 @@ set -euo pipefail
 #
 # Usage: ./tests/integration/test-integration.sh [IMAGE_NAME:TAG]
 #
-# Requires: docker compose, svn client, curl
+# Requires: docker compose, curl (svn commands run inside the container)
 
 IMAGE="${1:-subversion-ldap-httpd:1.14.5}"
 IMAGE_NAME="${IMAGE%%:*}"
 IMAGE_TAG="${IMAGE##*:}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE_URL="http://localhost:${SVN_TEST_PORT:-18080}"
+# URL for svn commands inside the container (Apache listens on 8080)
+CONTAINER="svn-integration-test"
+INTERNAL_URL="http://localhost:8080"
 PASS=0
 FAIL=0
 TOTAL=17
@@ -22,11 +25,8 @@ cleanup() {
     echo "--- Cleanup ---"
     cd "$SCRIPT_DIR"
     IMAGE_NAME="$IMAGE_NAME" IMAGE_TAG="$IMAGE_TAG" docker compose down -v 2>/dev/null || true
-    rm -rf "$CHECKOUT_DIR"
 }
 trap cleanup EXIT
-
-CHECKOUT_DIR=$(mktemp -d)
 
 pass() {
     PASS=$((PASS + 1))
@@ -161,10 +161,15 @@ else
     fail "Unauthenticated access returns $HTTP_CODE (expected 401)"
 fi
 
+# Helper: run svn inside the container
+dsvn() {
+    docker exec "$CONTAINER" svn --non-interactive --trust-server-cert-failures=unknown-ca "$@"
+}
+
 # --- Test 9: svn checkout ---
 echo "[9/$TOTAL] svn checkout"
-if svn checkout --username alice --password password-alice --non-interactive --trust-server-cert-failures=unknown-ca \
-    "$BASE_URL/alpha-project/src" "$CHECKOUT_DIR/alpha-src" > /dev/null 2>&1; then
+if dsvn checkout --username alice --password password-alice \
+    "$INTERNAL_URL/alpha-project/src" /tmp/alpha-src > /dev/null 2>&1; then
     pass "svn checkout alpha-project/src"
 else
     fail "svn checkout alpha-project/src failed"
@@ -172,11 +177,11 @@ fi
 
 # --- Test 10: svn commit ---
 echo "[10/$TOTAL] svn commit (alice writes to alpha-project)"
-if [ -d "$CHECKOUT_DIR/alpha-src" ]; then
-    echo "test content" > "$CHECKOUT_DIR/alpha-src/testfile.txt"
-    svn add "$CHECKOUT_DIR/alpha-src/testfile.txt" > /dev/null 2>&1
-    if svn commit --username alice --password password-alice --non-interactive --trust-server-cert-failures=unknown-ca \
-        -m "Integration test commit" "$CHECKOUT_DIR/alpha-src" > /dev/null 2>&1; then
+if docker exec "$CONTAINER" test -d /tmp/alpha-src; then
+    docker exec "$CONTAINER" sh -c 'echo "test content" > /tmp/alpha-src/testfile.txt'
+    docker exec "$CONTAINER" svn add /tmp/alpha-src/testfile.txt > /dev/null 2>&1
+    if dsvn commit --username alice --password password-alice \
+        -m "Integration test commit" /tmp/alpha-src > /dev/null 2>&1; then
         pass "svn commit as alice (admin) succeeds"
     else
         fail "svn commit as alice (admin) failed"
@@ -187,8 +192,8 @@ fi
 
 # --- Test 11: svn list ---
 echo "[11/$TOTAL] svn list"
-LIST_OUTPUT=$(svn list --username alice --password password-alice --non-interactive --trust-server-cert-failures=unknown-ca \
-    "$BASE_URL/alpha-project/src" 2>&1)
+LIST_OUTPUT=$(dsvn list --username alice --password password-alice \
+    "$INTERNAL_URL/alpha-project/src" 2>&1)
 if echo "$LIST_OUTPUT" | grep -q "testfile.txt"; then
     pass "svn list shows committed file"
 else
@@ -197,8 +202,8 @@ fi
 
 # --- Test 12: svn info ---
 echo "[12/$TOTAL] svn info"
-INFO_OUTPUT=$(svn info --username alice --password password-alice --non-interactive --trust-server-cert-failures=unknown-ca \
-    "$BASE_URL/alpha-project/src" 2>&1)
+INFO_OUTPUT=$(dsvn info --username alice --password password-alice \
+    "$INTERNAL_URL/alpha-project/src" 2>&1)
 if echo "$INFO_OUTPUT" | grep -q "Revision:"; then
     pass "svn info returns revision info"
 else
@@ -207,8 +212,8 @@ fi
 
 # --- Test 13: Authz — bob can read alpha-project ---
 echo "[13/$TOTAL] Authz: bob (dev) reads alpha-project"
-if svn list --username bob --password password-bob --non-interactive --trust-server-cert-failures=unknown-ca \
-    "$BASE_URL/alpha-project/src" > /dev/null 2>&1; then
+if dsvn list --username bob --password password-bob \
+    "$INTERNAL_URL/alpha-project/src" > /dev/null 2>&1; then
     pass "bob can read alpha-project/src"
 else
     fail "bob cannot read alpha-project/src (expected access)"
@@ -217,19 +222,19 @@ fi
 # --- Test 14: Authz — charlie can read alpha-project but not write ---
 echo "[14/$TOTAL] Authz: charlie (viewer) reads but cannot write alpha-project"
 CHARLIE_READ=false
-if svn list --username charlie --password password-charlie --non-interactive --trust-server-cert-failures=unknown-ca \
-    "$BASE_URL/alpha-project/src" > /dev/null 2>&1; then
+if dsvn list --username charlie --password password-charlie \
+    "$INTERNAL_URL/alpha-project/src" > /dev/null 2>&1; then
     CHARLIE_READ=true
 fi
 
 # Checkout as charlie, try to commit
-svn checkout --username charlie --password password-charlie --non-interactive --trust-server-cert-failures=unknown-ca \
-    "$BASE_URL/alpha-project/src" "$CHECKOUT_DIR/charlie-src" > /dev/null 2>&1 || true
-echo "charlie test" > "$CHECKOUT_DIR/charlie-src/charlie-test.txt" 2>/dev/null || true
-svn add "$CHECKOUT_DIR/charlie-src/charlie-test.txt" > /dev/null 2>&1 || true
+dsvn checkout --username charlie --password password-charlie \
+    "$INTERNAL_URL/alpha-project/src" /tmp/charlie-src > /dev/null 2>&1 || true
+docker exec "$CONTAINER" sh -c 'echo "charlie test" > /tmp/charlie-src/charlie-test.txt' 2>/dev/null || true
+docker exec "$CONTAINER" svn add /tmp/charlie-src/charlie-test.txt > /dev/null 2>&1 || true
 CHARLIE_WRITE=true
-if ! svn commit --username charlie --password password-charlie --non-interactive --trust-server-cert-failures=unknown-ca \
-    -m "Should fail" "$CHECKOUT_DIR/charlie-src" > /dev/null 2>&1; then
+if ! dsvn commit --username charlie --password password-charlie \
+    -m "Should fail" /tmp/charlie-src > /dev/null 2>&1; then
     CHARLIE_WRITE=false
 fi
 
@@ -273,8 +278,8 @@ echo "[17/$TOTAL] Multi-repo isolation"
 BETA_LISTING=$(curl -s -u bob:password-bob "$BASE_URL/beta-project/" 2>&1)
 if echo "$BETA_LISTING" | grep -q "docs"; then
     # Verify beta-project/docs repo has no alpha-project content
-    BETA_DOCS=$(svn list --username bob --password password-bob --non-interactive --trust-server-cert-failures=unknown-ca \
-        "$BASE_URL/beta-project/docs" 2>&1) || BETA_DOCS=""
+    BETA_DOCS=$(dsvn list --username bob --password password-bob \
+        "$INTERNAL_URL/beta-project/docs" 2>&1) || BETA_DOCS=""
     if echo "$BETA_DOCS" | grep -q "testfile.txt"; then
         fail "alpha-project content leaked into beta-project"
     else
