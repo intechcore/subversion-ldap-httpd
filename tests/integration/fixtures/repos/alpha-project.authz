@@ -1,0 +1,25 @@
+[groups]
+admins = alice
+devs = alice, bob
+viewers = charlie
+
+[/]
+* =
+@admins = rw
+@devs = rw
+@viewers = r
+
+[docs:/]
+@admins = rw
+@devs = rw
+@viewers = r
+
+[src:/]
+@admins = rw
+@devs = rw
+@viewers = r
+
+[src:/release]
+@admins = rw
+@devs = r
+@viewers = r
