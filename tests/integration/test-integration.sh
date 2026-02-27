@@ -1,7 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-# Integration tests for subversion-ldap-httpd Docker image.
+# Tests for subversion-ldap-httpd Docker image.
+# Includes structural checks (image, modules, user) and end-to-end integration tests.
+#
 # Usage: ./tests/integration/test-integration.sh [IMAGE_NAME:TAG]
 #
 # Requires: docker compose, svn client, curl
@@ -13,6 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE_URL="http://localhost:${SVN_TEST_PORT:-18080}"
 PASS=0
 FAIL=0
+TOTAL=17
 
 cleanup() {
     echo ""
@@ -49,10 +52,70 @@ wait_for_service() {
     return 1
 }
 
-echo "=== Integration tests for $IMAGE ==="
+echo "=== Tests for $IMAGE ==="
 echo ""
 
-# --- Start services ---
+# ============================================================
+# Structural checks (no running container needed)
+# ============================================================
+
+# --- Test 1: Image exists ---
+echo "[1/$TOTAL] Image exists"
+if docker image inspect "$IMAGE" > /dev/null 2>&1; then
+    pass "Image $IMAGE found"
+else
+    fail "Image $IMAGE not found — build it first"
+    echo ""
+    echo "=== Results: $PASS passed, $FAIL failed ==="
+    exit 1
+fi
+
+# --- Test 2: Apache modules loaded ---
+echo "[2/$TOTAL] Required Apache modules enabled"
+MODULES_OUTPUT=$(docker run --rm --entrypoint "" "$IMAGE" apache2ctl -M 2>&1) || true
+ALL_FOUND=true
+for mod in dav_module dav_svn_module ldap_module authnz_ldap_module; do
+    if ! echo "$MODULES_OUTPUT" | grep -q "$mod"; then
+        ALL_FOUND=false
+        fail "Module $mod not found"
+    fi
+done
+if $ALL_FOUND; then
+    pass "All required modules enabled (dav, dav_svn, ldap, authnz_ldap)"
+fi
+
+# --- Test 3: Runs as non-root ---
+echo "[3/$TOTAL] Runs as non-root user"
+RUN_USER=$(docker run --rm --entrypoint "" "$IMAGE" id -un 2>&1)
+if [ "$RUN_USER" = "intechcore" ]; then
+    pass "Runs as user 'intechcore'"
+else
+    fail "Expected user 'intechcore', got '$RUN_USER'"
+fi
+
+# --- Test 4: HEALTHCHECK defined ---
+echo "[4/$TOTAL] HEALTHCHECK instruction present"
+HC=$(docker inspect --format='{{.Config.Healthcheck}}' "$IMAGE" 2>/dev/null || echo "")
+if [ -n "$HC" ] && [ "$HC" != "<nil>" ]; then
+    pass "HEALTHCHECK is defined"
+else
+    fail "HEALTHCHECK not found in image"
+fi
+
+# --- Test 5: Subversion binary present ---
+echo "[5/$TOTAL] Subversion binaries present"
+if docker run --rm --entrypoint "" "$IMAGE" svn --version --quiet > /dev/null 2>&1; then
+    SVN_VER=$(docker run --rm --entrypoint "" "$IMAGE" svn --version --quiet 2>&1)
+    pass "svn $SVN_VER is installed"
+else
+    fail "svn binary not found"
+fi
+
+# ============================================================
+# Integration tests (container with test fixtures)
+# ============================================================
+
+echo ""
 echo "Starting test environment..."
 cd "$SCRIPT_DIR"
 IMAGE_NAME="$IMAGE_NAME" IMAGE_TAG="$IMAGE_TAG" docker compose up -d
@@ -66,8 +129,8 @@ if ! wait_for_service "$BASE_URL" 30; then
 fi
 echo ""
 
-# --- Test 1: Welcome page ---
-echo "[1/12] Welcome page returns HTTP 200"
+# --- Test 6: Welcome page ---
+echo "[6/$TOTAL] Welcome page returns HTTP 200"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/")
 if [ "$HTTP_CODE" = "200" ]; then
     pass "GET / returns 200"
@@ -75,8 +138,8 @@ else
     fail "GET / returns $HTTP_CODE (expected 200)"
 fi
 
-# --- Test 2: SVNListParentPath listing ---
-echo "[2/12] SVNListParentPath listing"
+# --- Test 7: SVNListParentPath listing ---
+echo "[7/$TOTAL] SVNListParentPath listing"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -u alice:password-alice "$BASE_URL/alpha-project/")
 if [ "$HTTP_CODE" = "200" ]; then
     BODY=$(curl -s -u alice:password-alice "$BASE_URL/alpha-project/")
@@ -89,8 +152,8 @@ else
     fail "SVNListParentPath returns $HTTP_CODE (expected 200)"
 fi
 
-# --- Test 3: Authentication required (401 without creds) ---
-echo "[3/12] Authentication required"
+# --- Test 8: Authentication required (401 without creds) ---
+echo "[8/$TOTAL] Authentication required"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/alpha-project/")
 if [ "$HTTP_CODE" = "401" ]; then
     pass "Unauthenticated access returns 401"
@@ -98,8 +161,8 @@ else
     fail "Unauthenticated access returns $HTTP_CODE (expected 401)"
 fi
 
-# --- Test 4: svn checkout ---
-echo "[4/12] svn checkout"
+# --- Test 9: svn checkout ---
+echo "[9/$TOTAL] svn checkout"
 if svn checkout --username alice --password password-alice --non-interactive --trust-server-cert-failures=unknown-ca \
     "$BASE_URL/alpha-project/src" "$CHECKOUT_DIR/alpha-src" > /dev/null 2>&1; then
     pass "svn checkout alpha-project/src"
@@ -107,8 +170,8 @@ else
     fail "svn checkout alpha-project/src failed"
 fi
 
-# --- Test 5: svn commit ---
-echo "[5/12] svn commit (alice writes to alpha-project)"
+# --- Test 10: svn commit ---
+echo "[10/$TOTAL] svn commit (alice writes to alpha-project)"
 if [ -d "$CHECKOUT_DIR/alpha-src" ]; then
     echo "test content" > "$CHECKOUT_DIR/alpha-src/testfile.txt"
     svn add "$CHECKOUT_DIR/alpha-src/testfile.txt" > /dev/null 2>&1
@@ -122,8 +185,8 @@ else
     fail "svn commit skipped (checkout failed)"
 fi
 
-# --- Test 6: svn list ---
-echo "[6/12] svn list"
+# --- Test 11: svn list ---
+echo "[11/$TOTAL] svn list"
 LIST_OUTPUT=$(svn list --username alice --password password-alice --non-interactive --trust-server-cert-failures=unknown-ca \
     "$BASE_URL/alpha-project/src" 2>&1)
 if echo "$LIST_OUTPUT" | grep -q "testfile.txt"; then
@@ -132,8 +195,8 @@ else
     fail "svn list does not show testfile.txt"
 fi
 
-# --- Test 7: svn info ---
-echo "[7/12] svn info"
+# --- Test 12: svn info ---
+echo "[12/$TOTAL] svn info"
 INFO_OUTPUT=$(svn info --username alice --password password-alice --non-interactive --trust-server-cert-failures=unknown-ca \
     "$BASE_URL/alpha-project/src" 2>&1)
 if echo "$INFO_OUTPUT" | grep -q "Revision:"; then
@@ -142,8 +205,8 @@ else
     fail "svn info did not return expected data"
 fi
 
-# --- Test 8: Authz — bob can read alpha-project ---
-echo "[8/12] Authz: bob (dev) reads alpha-project"
+# --- Test 13: Authz — bob can read alpha-project ---
+echo "[13/$TOTAL] Authz: bob (dev) reads alpha-project"
 if svn list --username bob --password password-bob --non-interactive --trust-server-cert-failures=unknown-ca \
     "$BASE_URL/alpha-project/src" > /dev/null 2>&1; then
     pass "bob can read alpha-project/src"
@@ -151,8 +214,8 @@ else
     fail "bob cannot read alpha-project/src (expected access)"
 fi
 
-# --- Test 9: Authz — charlie can read alpha-project but not write ---
-echo "[9/12] Authz: charlie (viewer) reads but cannot write alpha-project"
+# --- Test 14: Authz — charlie can read alpha-project but not write ---
+echo "[14/$TOTAL] Authz: charlie (viewer) reads but cannot write alpha-project"
 CHARLIE_READ=false
 if svn list --username charlie --password password-charlie --non-interactive --trust-server-cert-failures=unknown-ca \
     "$BASE_URL/alpha-project/src" > /dev/null 2>&1; then
@@ -178,8 +241,8 @@ else
     fail "charlie can write to alpha-project (expected read-only)"
 fi
 
-# --- Test 10: Authz — charlie denied access to beta-project ---
-echo "[10/12] Authz: charlie denied access to beta-project"
+# --- Test 15: Authz — charlie denied access to beta-project ---
+echo "[15/$TOTAL] Authz: charlie denied access to beta-project"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -u charlie:password-charlie "$BASE_URL/beta-project/docs/")
 if [ "$HTTP_CODE" = "403" ]; then
     pass "charlie gets 403 on beta-project"
@@ -187,8 +250,8 @@ else
     fail "charlie gets $HTTP_CODE on beta-project (expected 403)"
 fi
 
-# --- Test 11: WebDAV — OPTIONS returns DAV header, PROPFIND returns 207 ---
-echo "[11/12] WebDAV: OPTIONS and PROPFIND"
+# --- Test 16: WebDAV — OPTIONS returns DAV header, PROPFIND returns 207 ---
+echo "[16/$TOTAL] WebDAV: OPTIONS and PROPFIND"
 DAV_HEADER=$(curl -s -I -u alice:password-alice -X OPTIONS "$BASE_URL/alpha-project/src/" 2>&1 | grep -i "^DAV:" || echo "")
 if [ -n "$DAV_HEADER" ]; then
     pass "OPTIONS returns DAV header"
@@ -204,8 +267,8 @@ else
     fail "PROPFIND returns $PROPFIND_CODE (expected 207)"
 fi
 
-# --- Test 12: Multi-repo isolation ---
-echo "[12/12] Multi-repo isolation"
+# --- Test 17: Multi-repo isolation ---
+echo "[17/$TOTAL] Multi-repo isolation"
 # Verify bob can access beta-project listing and alpha-project content is not there
 BETA_LISTING=$(curl -s -u bob:password-bob "$BASE_URL/beta-project/" 2>&1)
 if echo "$BETA_LISTING" | grep -q "docs"; then

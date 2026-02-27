@@ -49,15 +49,13 @@ make scan                     # build + trivy vulnerability scan
 
 ## Testing
 
-Smoke tests verify the image structure (run automatically in CI):
+Tests verify image structure and end-to-end functionality (run automatically in CI):
 
 ```bash
-make test                 # build + smoke tests
-make integration-test     # build + integration tests (requires: docker compose, svn)
-make test-all             # run both smoke and integration tests
+make test    # build + run all tests (requires: docker compose, svn)
 ```
 
-Integration tests start a real Apache+SVN container with test repositories and verify end-to-end functionality: checkout, commit, authz enforcement, WebDAV, and multi-repo isolation.
+Checks image structure (modules, non-root user, healthcheck, svn binary), then starts a real Apache+SVN container with test repositories and verifies: checkout, commit, authz enforcement, WebDAV, and multi-repo isolation.
 
 ## Releasing New Versions
 
