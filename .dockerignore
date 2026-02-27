@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.vscode
+tests
+build.sh
+CLAUDE.md
+README.md
+LICENSE
+renovate.json
+.DS_Store
