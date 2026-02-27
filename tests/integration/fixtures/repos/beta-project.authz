@@ -1,0 +1,12 @@
+[groups]
+admins = alice
+devs = bob
+
+[/]
+* =
+@admins = rw
+@devs = rw
+
+[docs:/]
+@admins = rw
+@devs = rw

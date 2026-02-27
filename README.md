@@ -40,18 +40,22 @@ Mount your configuration files:
 ## Building Locally
 
 ```bash
-./build.sh         # builds subversion-ldap-httpd:1.14.5
-./build.sh 1.14.5-2  # builds with custom tag
+make build                    # builds subversion-ldap-httpd:1.14.5
+make build IMAGE_TAG=1.14.5-2 # builds with custom tag
+make test                     # build + run smoke tests
+make lint                     # shellcheck + hadolint
+make scan                     # build + trivy vulnerability scan
 ```
 
 ## Testing
 
-Smoke tests verify the image before push (run automatically in CI):
+Tests verify image structure and end-to-end functionality (run automatically in CI):
 
 ```bash
-./build.sh
-./tests/test-image.sh subversion-ldap-httpd:1.14.5
+make test    # build + run all tests (requires: docker compose, svn)
 ```
+
+Checks image structure (modules, non-root user, healthcheck, svn binary), then starts a real Apache+SVN container with test repositories and verifies: checkout, commit, authz enforcement, WebDAV, and multi-repo isolation.
 
 ## Releasing New Versions
 

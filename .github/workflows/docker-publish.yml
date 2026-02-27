@@ -54,8 +54,8 @@ jobs:
           tags: subversion-ldap-httpd:test
           cache-from: type=gha
 
-      - name: Run smoke tests
-        run: ./tests/test-image.sh subversion-ldap-httpd:test
+      - name: Run tests
+        run: ./tests/integration/test-integration.sh subversion-ldap-httpd:test
 
       - name: Build and push
         uses: docker/build-push-action@v6

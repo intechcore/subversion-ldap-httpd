@@ -1,0 +1,27 @@
+services:
+  subversion:
+    image: ${IMAGE_NAME:-subversion-ldap-httpd}:${IMAGE_TAG:-1.14.5}
+    container_name: svn-integration-test
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        # Create parent directories for SVNParentPath
+        mkdir -p /svn/repos/alpha-project /svn/repos/beta-project /svn/repos/gamma-archive
+        # Create test repositories
+        for repo in alpha-project/src alpha-project/docs beta-project/docs gamma-archive/legacy-app gamma-archive/old-docs; do
+          svnadmin create "/svn/repos/$${repo}"
+        done
+        # Start Apache
+        exec /usr/sbin/apache2ctl -D FOREGROUND
+    ports:
+      - "${SVN_TEST_PORT:-18080}:8080"
+    volumes:
+      - ./fixtures/apache2.conf:/etc/apache2/apache2.conf:ro
+      - ./fixtures/htpasswd:/etc/apache2/htpasswd:ro
+      - ./fixtures/index.html:/var/www/html/index.html:ro
+      - ./fixtures/repos/alpha-project.conf:/etc/apache2/sites-enabled/alpha-project.conf:ro
+      - ./fixtures/repos/beta-project.conf:/etc/apache2/sites-enabled/beta-project.conf:ro
+      - ./fixtures/repos/gamma-archive.conf:/etc/apache2/sites-enabled/gamma-archive.conf:ro
+      - ./fixtures/repos/alpha-project.authz:/svn/authz/alpha-project.authz:ro
+      - ./fixtures/repos/beta-project.authz:/svn/authz/beta-project.authz:ro
+      - ./fixtures/repos/gamma-archive.authz:/svn/authz/gamma-archive.authz:ro

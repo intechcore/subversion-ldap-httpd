@@ -1,0 +1,16 @@
+[groups]
+admins = alice
+archivists = alice, bob
+
+[/]
+* =
+@admins = r
+@archivists = r
+
+[legacy-app:/]
+@admins = r
+@archivists = r
+
+[old-docs:/]
+@admins = r
+@archivists = r
