@@ -3,7 +3,7 @@
 .idea
 .vscode
 tests
-build.sh
+Makefile
 CLAUDE.md
 README.md
 LICENSE

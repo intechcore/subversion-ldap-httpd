@@ -10,7 +10,7 @@ test: build
 	./tests/test-image.sh $(IMAGE_NAME):$(IMAGE_TAG)
 
 lint:
-	shellcheck tests/*.sh build.sh
+	shellcheck tests/*.sh
 	docker run --rm -i hadolint/hadolint < Dockerfile
 
 scan: build
