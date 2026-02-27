@@ -70,7 +70,7 @@ echo "[4/6] Apache responds to HTTP requests"
 docker run -d --name "$CONTAINER_NAME" "$IMAGE" > /dev/null 2>&1
 
 READY=false
-for i in $(seq 1 10); do
+for _i in $(seq 1 10); do
     if docker exec "$CONTAINER_NAME" curl -sf http://localhost:8080/ > /dev/null 2>&1; then
         READY=true
         break
