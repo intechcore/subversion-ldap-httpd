@@ -1,6 +1,6 @@
 FROM debian:stable-slim
 
-LABEL maintainer="Sergey Grigoriev <s.grigoriev@intechcore.com>"
+LABEL maintainer="Sergey Grigoriev <s.grigoriev@subversion.com>"
 LABEL org.opencontainers.image.description="Apache Subversion with LDAP authentication on Debian 13"
 
 # hadolint ignore=DL3008
@@ -23,28 +23,28 @@ RUN apt-get update && \
     && a2dissite 000-default
 
 # Create user
-RUN groupadd -g 1000 intechcore && \
-    useradd -u 1000 -m -g intechcore intechcore
+RUN groupadd -g 1000 subversion && \
+    useradd -u 1000 -m -g subversion subversion
 
-# Configure Apache to run as intechcore and listen on 8080
-RUN sed -i 's/export APACHE_RUN_USER=www-data/export APACHE_RUN_USER=intechcore/' /etc/apache2/envvars && \
-    sed -i 's/export APACHE_RUN_GROUP=www-data/export APACHE_RUN_GROUP=intechcore/' /etc/apache2/envvars && \
+# Configure Apache to run as subversion and listen on 8080
+RUN sed -i 's/export APACHE_RUN_USER=www-data/export APACHE_RUN_USER=subversion/' /etc/apache2/envvars && \
+    sed -i 's/export APACHE_RUN_GROUP=www-data/export APACHE_RUN_GROUP=subversion/' /etc/apache2/envvars && \
     sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
 
 # Create directories and set permissions
 RUN mkdir -p /svn/repos /var/run/apache2 /var/lock/apache2 && \
-    chown -R intechcore:intechcore /svn && \
-    chown -R intechcore:intechcore /run/apache2 && \
-    chown -R intechcore:intechcore /var/run/apache2 && \
-    chown -R intechcore:intechcore /etc/apache2 && \
-    chown -R intechcore:intechcore /var/log/apache2 && \
-    chown -R intechcore:intechcore /var/lock/apache2 && \
-    chown -R intechcore:intechcore /var/www/html
+    chown -R subversion:subversion /svn && \
+    chown -R subversion:subversion /run/apache2 && \
+    chown -R subversion:subversion /var/run/apache2 && \
+    chown -R subversion:subversion /etc/apache2 && \
+    chown -R subversion:subversion /var/log/apache2 && \
+    chown -R subversion:subversion /var/lock/apache2 && \
+    chown -R subversion:subversion /var/www/html
 
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8080/ || exit 1
 
-USER intechcore
+USER subversion
 ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
