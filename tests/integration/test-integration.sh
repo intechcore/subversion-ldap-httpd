@@ -87,10 +87,10 @@ fi
 # --- Test 3: Runs as non-root ---
 echo "[3/$TOTAL] Runs as non-root user"
 RUN_USER=$(docker run --rm --entrypoint "" "$IMAGE" id -un 2>&1)
-if [ "$RUN_USER" = "intechcore" ]; then
-    pass "Runs as user 'intechcore'"
+if [ "$RUN_USER" = "subversion" ]; then
+    pass "Runs as user 'subversion'"
 else
-    fail "Expected user 'intechcore', got '$RUN_USER'"
+    fail "Expected user 'subversion', got '$RUN_USER'"
 fi
 
 # --- Test 4: HEALTHCHECK defined ---

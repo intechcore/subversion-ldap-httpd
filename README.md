@@ -23,7 +23,7 @@ services:
 - Apache HTTPD with mod_dav_svn
 - LDAP authentication support (mod_ldap)
 - Python 3 with python-ldap for LDAP sync scripts
-- Runs as non-root user (intechcore:1000)
+- Runs as non-root user (subversion:1000)
 - Health check enabled
 
 ## Configuration
@@ -76,7 +76,7 @@ Push to `main` and PRs only run build + smoke tests without pushing to registry.
 
 - Multi-arch: `linux/amd64`, `linux/arm64`
 - Base image: `debian:trixie-slim`
-- User: `intechcore` (UID 1000)
+- User: `subversion` (UID 1000)
 
 ## License
 
