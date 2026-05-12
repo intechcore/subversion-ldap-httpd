@@ -1,6 +1,6 @@
 FROM debian:stable-slim
 
-LABEL maintainer="Sergey Grigoriev <s.grigoriev@subversion.com>"
+LABEL maintainer="Sergey Grigoriev <s.grigoriev@intechcore.com>"
 LABEL org.opencontainers.image.description="Apache Subversion with LDAP authentication on Debian 13"
 
 # hadolint ignore=DL3008
