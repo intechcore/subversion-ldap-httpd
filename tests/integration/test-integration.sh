@@ -52,6 +52,10 @@ wait_for_service() {
     return 1
 }
 
+# Run with the platform of the image. Otherwise docker warns on stderr when an
+# arm64 image runs under emulation, and the warning ends up in the output.
+PLATFORM=$(docker image inspect -f '{{.Os}}/{{.Architecture}}' "$IMAGE" 2>/dev/null || echo "")
+
 echo "=== Tests for $IMAGE ==="
 echo ""
 
@@ -72,7 +76,7 @@ fi
 
 # --- Test 2: Apache modules loaded ---
 echo "[2/$TOTAL] Required Apache modules enabled"
-MODULES_OUTPUT=$(docker run --rm --entrypoint "" "$IMAGE" apache2ctl -M 2>&1) || true
+MODULES_OUTPUT=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" apache2ctl -M 2>&1) || true
 ALL_FOUND=true
 for mod in dav_module dav_svn_module ldap_module authnz_ldap_module; do
     if ! echo "$MODULES_OUTPUT" | grep -q "$mod"; then
@@ -86,7 +90,7 @@ fi
 
 # --- Test 3: Runs as non-root ---
 echo "[3/$TOTAL] Runs as non-root user"
-RUN_USER=$(docker run --rm --entrypoint "" "$IMAGE" id -un 2>&1)
+RUN_USER=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" id -un 2>&1)
 if [ "$RUN_USER" = "subversion" ]; then
     pass "Runs as user 'subversion'"
 else
@@ -104,8 +108,8 @@ fi
 
 # --- Test 5: Subversion binary present ---
 echo "[5/$TOTAL] Subversion binaries present"
-if docker run --rm --entrypoint "" "$IMAGE" svn --version --quiet > /dev/null 2>&1; then
-    SVN_VER=$(docker run --rm --entrypoint "" "$IMAGE" svn --version --quiet 2>&1)
+if docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" svn --version --quiet > /dev/null 2>&1; then
+    SVN_VER=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" svn --version --quiet 2>&1)
     pass "svn $SVN_VER is installed"
 else
     fail "svn binary not found"
