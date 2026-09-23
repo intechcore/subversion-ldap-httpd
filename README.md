@@ -60,18 +60,13 @@ Checks image structure (modules, non-root user, healthcheck, svn binary), then s
 
 ## Releasing New Versions
 
-Create a git tag to trigger build, test, and push to registry:
+Run the **Release** workflow (`workflow_dispatch`). It builds the image, runs the tests, reads
+the Subversion version from the image, and pushes `<version>-<n>`, `<version>` and `latest` to
+ghcr.io. `<n>` counts the builds for one Subversion version.
 
-```bash
-git tag v1.14.5
-git push origin v1.14.5
-
-# For rebuilds with same SVN version
-git tag v1.14.5-2
-git push origin v1.14.5-2
-```
-
-Push to `main` and PRs only run build + smoke tests without pushing to registry.
+Pull requests and pushes to `main` run `ci.yml`: lint (ShellCheck, Hadolint, actionlint, zizmor,
+`trivy config`), the integration tests on amd64 and arm64, and a Trivy scan of the image.
+Trivy fails on CRITICAL findings and reports HIGH ones to a tracking issue.
 
 ### Automatic Rebuilds
 
