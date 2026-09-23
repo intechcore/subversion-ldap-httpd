@@ -1,5 +1,10 @@
 # subversion-ldap-httpd
 
+[![CI](https://github.com/intechcore/subversion-ldap-httpd/actions/workflows/ci.yml/badge.svg)](https://github.com/intechcore/subversion-ldap-httpd/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/intechcore/subversion-ldap-httpd)](https://github.com/intechcore/subversion-ldap-httpd/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/intechcore/subversion-ldap-httpd/badge)](https://scorecard.dev/viewer/?uri=github.com/intechcore/subversion-ldap-httpd)
+
 Apache Subversion server with LDAP authentication on Debian 13.
 
 ## Quick Start
@@ -68,6 +73,24 @@ ghcr.io. `<n>` counts the builds for one Subversion version.
 Pull requests and pushes to `main` run `ci.yml`: lint (ShellCheck, Hadolint, actionlint, zizmor,
 `trivy config`), the integration tests on amd64 and arm64, and a Trivy scan of the image.
 Trivy fails on CRITICAL findings and reports HIGH ones to a tracking issue.
+
+### Verify an image
+
+Each release carries signed attestations. The build provenance proves which workflow of this
+repository built the image, and from which commit:
+
+```sh
+gh attestation verify oci://ghcr.io/intechcore/subversion-ldap-httpd:1.14.5-2 --owner intechcore
+```
+
+The SBOM (SPDX) lists the packages in the image. It belongs to the image of one platform, so
+check it on the digest of that platform, from `docker buildx imagetools inspect`:
+
+```sh
+docker buildx imagetools inspect ghcr.io/intechcore/subversion-ldap-httpd:1.14.5-2
+gh attestation verify oci://ghcr.io/intechcore/subversion-ldap-httpd@sha256:<platform digest> \
+  --owner intechcore --predicate-type https://spdx.dev/Document/v2.3
+```
 
 ### Automatic Rebuilds
 
