@@ -9,7 +9,7 @@ Apache Subversion server with LDAP authentication on Debian 13.
 services:
   subversion:
     # renovate: image=ghcr.io/intechcore/subversion-ldap-httpd
-    image: ghcr.io/intechcore/subversion-ldap-httpd:1.14.5-1
+    image: ghcr.io/intechcore/subversion-ldap-httpd:1.14.5-2
     ports:
       - "8080:8080"
     volumes:
