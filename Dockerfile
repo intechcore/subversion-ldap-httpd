@@ -1,7 +1,12 @@
 FROM debian:trixie-slim
 
-LABEL maintainer="Sergey Grigoriev <s.grigoriev@intechcore.com>"
-LABEL org.opencontainers.image.description="Apache Subversion with LDAP authentication on Debian 13"
+LABEL org.opencontainers.image.title="subversion-ldap-httpd" \
+      org.opencontainers.image.description="Apache Subversion with LDAP authentication on Debian 13" \
+      org.opencontainers.image.source="https://github.com/intechcore/subversion-ldap-httpd" \
+      org.opencontainers.image.documentation="https://github.com/intechcore/subversion-ldap-httpd/blob/main/README.md" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.vendor="Intechcore GmbH" \
+      org.opencontainers.image.authors="Sergey Grigoriev <s.grigoriev@intechcore.com>"
 
 # hadolint ignore=DL3008
 RUN apt-get update && \
@@ -46,11 +51,16 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD ["curl", "-f", "http://localhost:8080/"]
 
-# Base image the build started from, passed in by the release workflow. The
-# weekly rebuild compares the digest with the current upstream one.
+# Build metadata and the base image the build started from, passed in by the
+# release workflow. The weekly rebuild compares the base digest with the
+# current upstream one.
+ARG GIT_SHA=unknown
+ARG BUILD_DATE=unknown
 ARG BASE_IMAGE=unknown
 ARG BASE_DIGEST=unknown
-LABEL org.opencontainers.image.base.name="${BASE_IMAGE}" \
+LABEL org.opencontainers.image.revision="${GIT_SHA}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.base.name="${BASE_IMAGE}" \
       org.opencontainers.image.base.digest="${BASE_DIGEST}"
 
 USER 1000:1000

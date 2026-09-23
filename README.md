@@ -88,6 +88,10 @@ The base stays on the Debian 13 codename on purpose. `stable-slim` moves to the 
 - Base image: `debian:trixie-slim`
 - User: `subversion` (UID 1000)
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately, see [SECURITY.md](SECURITY.md).
+
 ## License
 
 MIT
