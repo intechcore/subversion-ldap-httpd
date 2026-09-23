@@ -60,7 +60,8 @@ Checks image structure (modules, non-root user, healthcheck, svn binary), then s
 
 ## Releasing New Versions
 
-Run the **Release** workflow (`workflow_dispatch`). It builds the image, runs the tests, reads
+Run the **Release** workflow (`workflow_dispatch`). It builds and tests the image on amd64 and
+arm64, each on its own job, pushes exactly the tested images, reads
 the Subversion version from the image, and pushes `<version>-<n>`, `<version>` and `latest` to
 ghcr.io. `<n>` counts the builds for one Subversion version.
 
