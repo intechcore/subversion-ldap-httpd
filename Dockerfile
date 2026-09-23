@@ -1,4 +1,4 @@
-FROM debian:stable-slim
+FROM debian:trixie-slim
 
 LABEL maintainer="Sergey Grigoriev <s.grigoriev@intechcore.com>"
 LABEL org.opencontainers.image.description="Apache Subversion with LDAP authentication on Debian 13"
@@ -45,6 +45,13 @@ EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD ["curl", "-f", "http://localhost:8080/"]
+
+# Base image the build started from, passed in by the release workflow. The
+# weekly rebuild compares the digest with the current upstream one.
+ARG BASE_IMAGE=unknown
+ARG BASE_DIGEST=unknown
+LABEL org.opencontainers.image.base.name="${BASE_IMAGE}" \
+      org.opencontainers.image.base.digest="${BASE_DIGEST}"
 
 USER 1000:1000
 ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
