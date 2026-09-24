@@ -7,6 +7,16 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Lint and scan tool images in the Makefile, pinned by tag and digest",
+      "managerFilePatterns": [
+        "/^Makefile$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n[A-Z_]+\\s+\\?=\\s+\\S+?:(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ]
+    },
+    {
+      "customType": "regex",
       "description": "Update the image tag in the README quick start",
       "managerFilePatterns": ["/^README\\.md$/"],
       "matchStrings": [
