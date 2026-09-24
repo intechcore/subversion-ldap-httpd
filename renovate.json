@@ -26,10 +26,10 @@
   ],
   "packageRules": [
     {
-      "description": "Disable updates for debian:trixie-slim. The codename tag has no version to compare; the weekly Rebuild workflow picks up its rebuilds.",
+      "description": "debian:trixie-slim is pinned by digest. Renovate updates the digest when Debian rebuilds the image under the same tag, and the weekly Rebuild then releases it. The codename tag itself stays.",
       "matchDatasources": ["docker"],
       "matchDepNames": ["debian"],
-      "enabled": false
+      "pinDigests": true
     },
     {
       "description": "Own image, private on ghcr.io (see hostRules). Every release publishes the exact build tag (1.14.5-1) next to the moving tag (1.14.5) and latest. Regex versioning tracks only the exact one and orders by the build number. Docker versioning would read -N as a compatibility tag and hide rebuilds.",
