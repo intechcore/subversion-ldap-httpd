@@ -6,6 +6,10 @@ All notable changes to this image are recorded here. The format is loosely based
 
 ## [Unreleased]
 
+### Fixed
+- A release counts the git tags as taken build numbers, next to the package tags, and never
+  attaches to an existing tag. A deleted package or release can no longer free a number.
+
 ### Added
 - A real LDAP authentication test: Apache binds against an OpenLDAP server from
   `ghcr.io/intechcore/openldap` and lets an LDAP user in, a wrong password gets 401. Until now the
