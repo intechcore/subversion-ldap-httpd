@@ -12,6 +12,8 @@ All notable changes to this image are recorded here. The format is loosely based
   Renovate update of the base image now reaches the registry without a manual step.
 
 ### Fixed
+- The Rebuild workflow never started since releases are signed: it called the release without
+  the `id-token` and `attestations` permissions the release needs. It grants them now.
 - A release counts the git tags as taken build numbers, next to the package tags, and never
   attaches to an existing tag. A deleted package or release can no longer free a number.
 
