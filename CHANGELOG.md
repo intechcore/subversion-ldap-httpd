@@ -6,6 +6,11 @@ All notable changes to this image are recorded here. The format is loosely based
 
 ## [Unreleased]
 
+### Changed
+- Releases are automatic. The Rebuild workflow also runs on each push to `main` that changes the
+  `Dockerfile`, and releases a change of it since the commit of the published image. A merged
+  Renovate update of the base image now reaches the registry without a manual step.
+
 ### Fixed
 - A release counts the git tags as taken build numbers, next to the package tags, and never
   attaches to an existing tag. A deleted package or release can no longer free a number.

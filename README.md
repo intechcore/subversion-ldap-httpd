@@ -73,7 +73,8 @@ Checks image structure (modules, non-root user, healthcheck, svn binary), then s
 
 ## Releasing New Versions
 
-Run the **Release** workflow (`workflow_dispatch`). It builds and tests the image on amd64 and
+Releases are automatic, see [Automatic Releases](#automatic-releases). To release by hand, run the
+**Release** workflow (`workflow_dispatch`). It builds and tests the image on amd64 and
 arm64, each on its own job, pushes exactly the tested images, reads
 the Subversion version from the image, and pushes `<version>-<n>`, `<version>` and `latest` to
 ghcr.io. `<n>` counts the builds for one Subversion version.
@@ -105,16 +106,19 @@ gh attestation verify oci://ghcr.io/intechcore/subversion-ldap-httpd@sha256:<pla
   --owner intechcore --predicate-type https://spdx.dev/Document/v2.3
 ```
 
-### Automatic Rebuilds
+### Automatic Releases
 
-The image builds on `debian:trixie-slim` and installs its packages with apt. Debian ships security fixes as package updates and rebuilds the base image under the same tag. Renovate sees neither.
+Every input change on `main` releases by itself. The image builds on `debian:trixie-slim` and installs Subversion and Apache with apt, so it pins no Subversion version of its own. Renovate updates the base digest when Debian rebuilds the tag. Debian also ships security fixes as package updates, which change no file in git.
 
-The `Rebuild` workflow checks the published `latest` image every Monday. It releases the next build (`1.14.5-1 → 1.14.5-2`) in two cases:
+The `Rebuild` workflow checks the published `latest` image. It runs every Monday, and on each push to `main` that changes the `Dockerfile`. It releases the next build (`1.14.5-1 → 1.14.5-2`) in these cases:
 
-- The upstream base image digest differs from the `org.opencontainers.image.base.digest` label of the published image.
+- The base image digest pinned in `FROM` differs from the `org.opencontainers.image.base.digest` label of the published image. A merged Renovate update releases without a manual step.
 - Trivy finds fixable CRITICAL or HIGH vulnerabilities in the published image.
+- The `Dockerfile` changed since the commit in the `org.opencontainers.image.revision` label of the published image.
 
-A rebuild runs without the layer cache, so apt installs current packages. The release notes state the reason, with the CVE, package and fixed version of each Trivy finding. The rebuild releases the current `main`, so merged changes go out with it.
+One check and release runs at a time, so a burst of pushes never publishes the same change twice. A new Subversion from Debian gets the first build of its version, `-1`.
+
+A rebuild runs without the layer cache, so apt installs current packages. The release notes state the reason, with the CVE, package and fixed version of each Trivy finding. A release takes the current `main`, so merged changes go out with it.
 
 The base stays on the Debian 13 codename on purpose. `stable-slim` moves to the next Debian release without notice. Move to Debian 14 by changing `FROM`.
 

@@ -7,7 +7,8 @@ name: Release
 
 on:
   workflow_dispatch:
-  # Called by rebuild.yml when the base image or its packages changed.
+  # Called by rebuild.yml when an input of the image changed: the base
+  # image, its packages or the Dockerfile.
   workflow_call:
     inputs:
       reason:
