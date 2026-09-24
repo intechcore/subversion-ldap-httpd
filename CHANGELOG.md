@@ -19,6 +19,12 @@ All notable changes to this image are recorded here. The format is loosely based
 
 ### Changed
 - Renovate takes its common rules from the shared preset `github>intechcore/renovate-config`, which also turns on OSV vulnerability alerts.
+- Release notes summarize the release for people instead of listing the commits. They start with
+  the rebuild reason or the Subversion update, then the CHANGELOG entries added since the previous
+  release, then a table of Subversion and the base image. The commits follow in a collapsed block.
+  `.github/scripts/release-notes.sh` writes them.
+- The weekly rebuild names each Trivy finding it fixes in the release notes: CVE, package,
+  installed and fixed version.
 
 ## [1.14.5-2] - 2026-09-23
 

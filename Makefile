@@ -16,7 +16,7 @@ test: build
 	./tests/integration/test-integration.sh $(IMAGE_NAME):$(IMAGE_TAG)
 
 lint:
-	shellcheck tests/integration/*.sh
+	shellcheck tests/integration/*.sh .github/scripts/*.sh
 	docker run --rm -i $(HADOLINT_IMAGE) < Dockerfile
 
 scan: build
