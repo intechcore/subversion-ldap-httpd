@@ -1,4 +1,4 @@
-FROM debian:trixie-slim
+FROM debian:trixie-slim@sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
 
 LABEL org.opencontainers.image.title="subversion-ldap-httpd" \
       org.opencontainers.image.description="Apache Subversion with LDAP authentication on Debian 13" \
