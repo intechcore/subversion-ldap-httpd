@@ -11,15 +11,17 @@
       ],
       "depNameTemplate": "ghcr.io/intechcore/subversion-ldap-httpd",
       "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Tool versions in workflow inputs, below a renovate comment, for example the ShellCheck version of ludeeus/action-shellcheck",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+[a-z0-9_-]+: (?<currentValue>[^\\s@]+)\\n"
+      ]
     }
   ],
   "packageRules": [
-    {
-      "description": "debian:trixie-slim is pinned by digest. Renovate updates the digest when Debian rebuilds the image under the same tag, and the weekly Rebuild then releases it. The codename tag itself stays.",
-      "matchDatasources": ["docker"],
-      "matchDepNames": ["debian"],
-      "pinDigests": true
-    },
     {
       "description": "Own image on ghcr.io. Every release publishes the exact build tag (1.14.5-1) next to the moving tag (1.14.5) and latest. Regex versioning tracks only the exact one and orders by the build number. Docker versioning would read -N as a compatibility tag and hide rebuilds.",
       "matchPackageNames": ["ghcr.io/intechcore/subversion-ldap-httpd", "ghcr.io/intechcore/openldap"],

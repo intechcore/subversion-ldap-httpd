@@ -63,6 +63,9 @@ a test: a `# Contract:` comment next to the test, or a mount in the integration 
 it in the lint job. The LDAP authentication test runs against a real OpenLDAP server
 (`ghcr.io/intechcore/openldap`) with a test user.
 
+The image ships no shell code of its own, only configuration, so there is no line coverage to
+measure. SonarCloud analyzes the repository without it.
+
 Tests verify image structure and end-to-end functionality (run automatically in CI):
 
 ```bash
@@ -128,6 +131,10 @@ The base stays on the Debian 13 codename on purpose. `stable-slim` moves to the 
 - Base image: `debian:trixie-slim`
 - User: `subversion` (UID 1000)
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately, see [SECURITY.md](SECURITY.md).
+
 ## Disclaimer
 
 This image is provided "as is", without warranty of any kind, as the [LICENSE](LICENSE) states.
@@ -135,10 +142,6 @@ Use it at your own risk. Intechcore GmbH is not liable for damage from its use, 
 allows. It is published free of charge, outside of any commercial offering, with no obligation to
 support it. Security reports are welcome, see [SECURITY.md](SECURITY.md).
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately, see [SECURITY.md](SECURITY.md).
-
 ## License
 
-MIT
+MIT, see [LICENSE](LICENSE).
