@@ -18,7 +18,7 @@ CONTAINER="svn-integration-test"
 INTERNAL_URL="http://localhost:8080"
 PASS=0
 FAIL=0
-TOTAL=17
+TOTAL=19
 
 cleanup() {
     echo ""
@@ -75,6 +75,7 @@ else
 fi
 
 # --- Test 2: Apache modules loaded ---
+# Contract: Apache HTTPD with mod_dav_svn
 echo "[2/$TOTAL] Required Apache modules enabled"
 MODULES_OUTPUT=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" apache2ctl -M 2>&1) || true
 ALL_FOUND=true
@@ -89,6 +90,7 @@ if $ALL_FOUND; then
 fi
 
 # --- Test 3: Runs as non-root ---
+# Contract: Runs as non-root user (subversion:1000)
 echo "[3/$TOTAL] Runs as non-root user"
 RUN_USER=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" id -un 2>&1)
 if [[ "$RUN_USER" = "subversion" ]]; then
@@ -98,6 +100,7 @@ else
 fi
 
 # --- Test 4: HEALTHCHECK defined ---
+# Contract: Health check enabled
 echo "[4/$TOTAL] HEALTHCHECK instruction present"
 HC=$(docker inspect --format='{{.Config.Healthcheck}}' "$IMAGE" 2>/dev/null || echo "")
 if [[ -n "$HC" ]] && [[ "$HC" != "<nil>" ]]; then
@@ -107,6 +110,7 @@ else
 fi
 
 # --- Test 5: Subversion binary present ---
+# Contract: Apache Subversion 1.14.5
 echo "[5/$TOTAL] Subversion binaries present"
 if docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" svn --version --quiet > /dev/null 2>&1; then
     SVN_VER=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" svn --version --quiet 2>&1)
@@ -291,6 +295,40 @@ if echo "$BETA_LISTING" | grep -q "docs"; then
     fi
 else
     fail "beta-project listing does not contain expected repos"
+fi
+
+# --- Test 18: LDAP authentication ---
+# Contract: LDAP authentication support (mod_ldap)
+echo "[18/$TOTAL] LDAP authentication (mod_ldap against OpenLDAP)"
+# The LDAP server loads its bootstrap data after it starts: wait up to 30s.
+LDAP_OK=false
+for _i in $(seq 1 30); do
+    if dsvn list --username dave --password password-dave "$INTERNAL_URL/delta-ldap" > /dev/null 2>&1; then
+        LDAP_OK=true
+        break
+    fi
+    sleep 1
+done
+if [[ "$LDAP_OK" = "true" ]]; then
+    pass "LDAP user dave can read delta-ldap"
+else
+    fail "LDAP user dave cannot read delta-ldap"
+fi
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -u dave:wrong-password "$BASE_URL/delta-ldap/")
+if [[ "$HTTP_CODE" = "401" ]]; then
+    pass "Wrong LDAP password returns 401"
+else
+    fail "Wrong LDAP password returns $HTTP_CODE (expected 401)"
+fi
+
+# --- Test 19: python-ldap ---
+# Contract: Python 3 with python-ldap for LDAP sync scripts
+echo "[19/$TOTAL] Python 3 with python-ldap"
+if PYLDAP=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" \
+        python3 -c 'import ldap; print(ldap.__version__)' 2>&1); then
+    pass "python-ldap $PYLDAP imports"
+else
+    fail "python-ldap does not import: $PYLDAP"
 fi
 
 # --- Summary ---
