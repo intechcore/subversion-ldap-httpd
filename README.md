@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/intechcore/subversion-ldap-httpd/actions/workflows/ci.yml/badge.svg)](https://github.com/intechcore/subversion-ldap-httpd/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/intechcore/subversion-ldap-httpd/badge)](https://scorecard.dev/viewer/?uri=github.com/intechcore/subversion-ldap-httpd)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14792/badge)](https://www.bestpractices.dev/projects/14792)
 [![Release](https://img.shields.io/github/v/release/intechcore/subversion-ldap-httpd)](https://github.com/intechcore/subversion-ldap-httpd/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
