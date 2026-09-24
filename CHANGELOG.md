@@ -17,6 +17,9 @@ All notable changes to this image are recorded here. The format is loosely based
 - `SECURITY.md`, `CONTRIBUTING.md` and `.editorconfig`.
 - OCI labels: title, source, documentation, licenses, vendor, authors, revision and created.
 
+### Changed
+- Renovate takes its common rules from the shared preset `github>intechcore/renovate-config`, which also turns on OSV vulnerability alerts.
+
 ## [1.14.5-2] - 2026-09-23
 
 ### Added
