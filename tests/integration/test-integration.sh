@@ -91,7 +91,7 @@ fi
 # --- Test 3: Runs as non-root ---
 echo "[3/$TOTAL] Runs as non-root user"
 RUN_USER=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" id -un 2>&1)
-if [ "$RUN_USER" = "subversion" ]; then
+if [[ "$RUN_USER" = "subversion" ]]; then
     pass "Runs as user 'subversion'"
 else
     fail "Expected user 'subversion', got '$RUN_USER'"
@@ -100,7 +100,7 @@ fi
 # --- Test 4: HEALTHCHECK defined ---
 echo "[4/$TOTAL] HEALTHCHECK instruction present"
 HC=$(docker inspect --format='{{.Config.Healthcheck}}' "$IMAGE" 2>/dev/null || echo "")
-if [ -n "$HC" ] && [ "$HC" != "<nil>" ]; then
+if [[ -n "$HC" ]] && [[ "$HC" != "<nil>" ]]; then
     pass "HEALTHCHECK is defined"
 else
     fail "HEALTHCHECK not found in image"
@@ -136,7 +136,7 @@ echo ""
 # --- Test 6: Welcome page ---
 echo "[6/$TOTAL] Welcome page returns HTTP 200"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/")
-if [ "$HTTP_CODE" = "200" ]; then
+if [[ "$HTTP_CODE" = "200" ]]; then
     pass "GET / returns 200"
 else
     fail "GET / returns $HTTP_CODE (expected 200)"
@@ -145,7 +145,7 @@ fi
 # --- Test 7: SVNListParentPath listing ---
 echo "[7/$TOTAL] SVNListParentPath listing"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -u alice:password-alice "$BASE_URL/alpha-project/")
-if [ "$HTTP_CODE" = "200" ]; then
+if [[ "$HTTP_CODE" = "200" ]]; then
     BODY=$(curl -s -u alice:password-alice "$BASE_URL/alpha-project/")
     if echo "$BODY" | grep -q "src"; then
         pass "SVNListParentPath shows repositories (found 'src')"
@@ -159,7 +159,7 @@ fi
 # --- Test 8: Authentication required (401 without creds) ---
 echo "[8/$TOTAL] Authentication required"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/alpha-project/")
-if [ "$HTTP_CODE" = "401" ]; then
+if [[ "$HTTP_CODE" = "401" ]]; then
     pass "Unauthenticated access returns 401"
 else
     fail "Unauthenticated access returns $HTTP_CODE (expected 401)"
@@ -253,7 +253,7 @@ fi
 # --- Test 15: Authz — charlie denied access to beta-project ---
 echo "[15/$TOTAL] Authz: charlie denied access to beta-project"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -u charlie:password-charlie "$BASE_URL/beta-project/docs/")
-if [ "$HTTP_CODE" = "403" ]; then
+if [[ "$HTTP_CODE" = "403" ]]; then
     pass "charlie gets 403 on beta-project"
 else
     fail "charlie gets $HTTP_CODE on beta-project (expected 403)"
@@ -262,7 +262,7 @@ fi
 # --- Test 16: WebDAV — OPTIONS returns DAV header, PROPFIND returns 207 ---
 echo "[16/$TOTAL] WebDAV: OPTIONS and PROPFIND"
 DAV_HEADER=$(curl -s -I -u alice:password-alice -X OPTIONS "$BASE_URL/alpha-project/src/" 2>&1 | grep -i "^DAV:" || echo "")
-if [ -n "$DAV_HEADER" ]; then
+if [[ -n "$DAV_HEADER" ]]; then
     pass "OPTIONS returns DAV header"
 else
     fail "OPTIONS does not return DAV header"
@@ -270,7 +270,7 @@ fi
 
 PROPFIND_CODE=$(curl -s -o /dev/null -w "%{http_code}" -u alice:password-alice -X PROPFIND \
     -H "Depth: 0" "$BASE_URL/alpha-project/src/")
-if [ "$PROPFIND_CODE" = "207" ]; then
+if [[ "$PROPFIND_CODE" = "207" ]]; then
     pass "PROPFIND returns 207 Multi-Status"
 else
     fail "PROPFIND returns $PROPFIND_CODE (expected 207)"
@@ -297,6 +297,6 @@ fi
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
-if [ "$FAIL" -gt 0 ]; then
+if [[ "$FAIL" -gt 0 ]]; then
     exit 1
 fi
