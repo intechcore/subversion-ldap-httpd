@@ -1,9 +1,10 @@
 # subversion-ldap-httpd
 
 [![CI](https://github.com/intechcore/subversion-ldap-httpd/actions/workflows/ci.yml/badge.svg)](https://github.com/intechcore/subversion-ldap-httpd/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/intechcore/subversion-ldap-httpd/badge)](https://scorecard.dev/viewer/?uri=github.com/intechcore/subversion-ldap-httpd)
 [![Release](https://img.shields.io/github/v/release/intechcore/subversion-ldap-httpd)](https://github.com/intechcore/subversion-ldap-httpd/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/intechcore/subversion-ldap-httpd/badge)](https://scorecard.dev/viewer/?uri=github.com/intechcore/subversion-ldap-httpd)
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=intechcore_subversion-ldap-httpd&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=intechcore_subversion-ldap-httpd)
 
 Apache Subversion server with LDAP authentication on Debian 13.
