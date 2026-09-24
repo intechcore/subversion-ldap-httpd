@@ -33,7 +33,7 @@
     },
     {
       "description": "Own image, private on ghcr.io (see hostRules). Every release publishes the exact build tag (1.14.5-1) next to the moving tag (1.14.5) and latest. Regex versioning tracks only the exact one and orders by the build number. Docker versioning would read -N as a compatibility tag and hide rebuilds.",
-      "matchPackageNames": ["ghcr.io/intechcore/subversion-ldap-httpd"],
+      "matchPackageNames": ["ghcr.io/intechcore/subversion-ldap-httpd", "ghcr.io/intechcore/openldap"],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$"
     }
   ]

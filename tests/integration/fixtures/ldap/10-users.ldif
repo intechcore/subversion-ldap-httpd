@@ -1,0 +1,8 @@
+# Test user for the LDAP authentication test (Test 18). Synthetic data.
+dn: uid=dave,ou=people,dc=example,dc=org
+objectClass: inetOrgPerson
+cn: Dave Example
+sn: Example
+uid: dave
+mail: dave@example.org
+userPassword: password-dave

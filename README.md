@@ -56,6 +56,11 @@ make scan                     # build + trivy vulnerability scan
 
 ## Testing
 
+`tests/contract.sh` checks that every feature and every configuration path in this README has
+a test: a `# Contract:` comment next to the test, or a mount in the integration setup. CI runs
+it in the lint job. The LDAP authentication test runs against a real OpenLDAP server
+(`ghcr.io/intechcore/openldap`) with a test user.
+
 Tests verify image structure and end-to-end functionality (run automatically in CI):
 
 ```bash

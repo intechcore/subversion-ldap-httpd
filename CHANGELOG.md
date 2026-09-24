@@ -7,6 +7,12 @@ All notable changes to this image are recorded here. The format is loosely based
 ## [Unreleased]
 
 ### Added
+- A real LDAP authentication test: Apache binds against an OpenLDAP server from
+  `ghcr.io/intechcore/openldap` and lets an LDAP user in, a wrong password gets 401. Until now the
+  tests only checked that the LDAP modules were enabled.
+- A test that python-ldap imports.
+- `tests/contract.sh`: every feature and configuration path in the README must have a test. Runs
+  in the lint job.
 - Build provenance and SBOM attestations for every release, checked with `gh attestation verify`. OpenSSF Scorecard workflow and README badges. arm64 builds and tests run on native runners instead of QEMU.
 - `SECURITY.md`, `CONTRIBUTING.md` and `.editorconfig`.
 - OCI labels: title, source, documentation, licenses, vendor, authors, revision and created.
