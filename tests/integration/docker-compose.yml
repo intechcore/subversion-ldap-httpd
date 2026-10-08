@@ -31,6 +31,11 @@ services:
     depends_on:
       ldap:
         condition: service_healthy
+    # The test of the healthcheck waits for its verdict. The command stays the
+    # one of the image, only the first check comes sooner.
+    healthcheck:
+      interval: 2s
+      start_period: 0s
     ports:
       - "${SVN_TEST_PORT:-18080}:8080"
     volumes:

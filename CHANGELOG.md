@@ -6,6 +6,11 @@ All notable changes to this image are recorded here. The format is loosely based
 
 ## [Unreleased]
 
+### Changed
+- The healthcheck runs [container-healthcheck](https://github.com/intechcore/container-healthcheck)
+  instead of curl, and curl is no longer in the image. It asks `http://127.0.0.1:8080/` as before.
+  `HEALTHCHECK_PORT` and `HEALTHCHECK_PATH` set where it asks.
+
 ### Added
 - A real LDAP authentication test: Apache binds against an OpenLDAP server from
   `ghcr.io/intechcore/openldap` and lets an LDAP user in, a wrong password gets 401. Until now the

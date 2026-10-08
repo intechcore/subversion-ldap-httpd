@@ -33,7 +33,7 @@ services:
 - LDAP authentication support (mod_ldap)
 - Python 3 with python-ldap for LDAP sync scripts
 - Runs as non-root user (subversion:1000)
-- Health check enabled
+- Health check with container-healthcheck, no curl in the image
 
 ## Configuration
 
