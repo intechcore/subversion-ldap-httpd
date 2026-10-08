@@ -18,7 +18,7 @@ CONTAINER="svn-integration-test"
 INTERNAL_URL="http://localhost:8080"
 PASS=0
 FAIL=0
-TOTAL=19
+TOTAL=22
 
 cleanup() {
     echo ""
@@ -99,14 +99,30 @@ else
     fail "Expected user 'subversion', got '$RUN_USER'"
 fi
 
-# --- Test 4: HEALTHCHECK defined ---
-# Contract: Health check enabled
-echo "[4/$TOTAL] HEALTHCHECK instruction present"
-HC=$(docker inspect --format='{{.Config.Healthcheck}}' "$IMAGE" 2>/dev/null || echo "")
-if [[ -n "$HC" ]] && [[ "$HC" != "<nil>" ]]; then
-    pass "HEALTHCHECK is defined"
+# --- Test 4: HEALTHCHECK runs container-healthcheck ---
+# Contract: Health check with container-healthcheck, no curl in the image
+echo "[4/$TOTAL] HEALTHCHECK runs container-healthcheck"
+HC=$(docker inspect --format='{{json .Config.Healthcheck.Test}}' "$IMAGE" 2>/dev/null || echo "")
+if [[ "$HC" = '["CMD","container-healthcheck"]' ]]; then
+    pass "HEALTHCHECK is $HC"
 else
-    fail "HEALTHCHECK not found in image"
+    fail "HEALTHCHECK is '$HC', expected [\"CMD\",\"container-healthcheck\"]"
+fi
+
+# --- Test 20: the healthcheck binary is present ---
+echo "[20/$TOTAL] container-healthcheck binary present"
+if HC_VERSION=$(docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" container-healthcheck --version 2>&1); then
+    pass "container-healthcheck $HC_VERSION"
+else
+    fail "container-healthcheck does not run: $HC_VERSION"
+fi
+
+# --- Test 21: no curl in the image ---
+echo "[21/$TOTAL] curl is not in the image"
+if docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" sh -c 'command -v curl' > /dev/null 2>&1; then
+    fail "curl is in the image"
+else
+    pass "curl is not in the image"
 fi
 
 # --- Test 5: Subversion binary present ---
@@ -136,6 +152,21 @@ if ! wait_for_service "$BASE_URL" 30; then
     exit 1
 fi
 echo ""
+
+# --- Test 22: the running container turns healthy ---
+echo "[22/$TOTAL] The healthcheck reports the container healthy"
+HEALTH="starting"
+for _i in $(seq 1 30); do
+    HEALTH=$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER" 2>/dev/null || echo "missing")
+    [[ "$HEALTH" = "starting" ]] || break
+    sleep 1
+done
+HEALTH_LOG=$(docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' "$CONTAINER" 2>/dev/null || echo "")
+if [[ "$HEALTH" = "healthy" ]] && [[ "$HEALTH_LOG" == *"200 OK"* ]]; then
+    pass "healthy, Apache answered 200 OK"
+else
+    fail "health is '$HEALTH', log: $HEALTH_LOG"
+fi
 
 # --- Test 6: Welcome page ---
 echo "[6/$TOTAL] Welcome page returns HTTP 200"

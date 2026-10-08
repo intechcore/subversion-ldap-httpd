@@ -19,7 +19,6 @@ RUN apt-get update && \
         libapache2-mod-svn \
         python3 \
         python3-ldap \
-        curl \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     # Enable required Apache modules
@@ -48,8 +47,14 @@ RUN mkdir -p /svn/repos /var/run/apache2 /var/lock/apache2 && \
 
 EXPOSE 8080
 
+# The healthcheck asks Apache on loopback with a static binary, so the image
+# needs no curl: https://github.com/intechcore/container-healthcheck
+COPY --from=ghcr.io/intechcore/container-healthcheck:0.1.0@sha256:e79a4f414f23150bf5ef37f5067a12d84807abe5e6bea5179172b4a419817090 \
+    /container-healthcheck /usr/local/bin/container-healthcheck
+ENV HEALTHCHECK_PORT=8080 \
+    HEALTHCHECK_PATH=/
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD ["curl", "-f", "http://localhost:8080/"]
+    CMD ["container-healthcheck"]
 
 # Build metadata and the base image the build started from, passed in by the
 # release workflow. The weekly rebuild compares the base digest with the
