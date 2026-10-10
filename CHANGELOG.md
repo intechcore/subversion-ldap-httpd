@@ -7,6 +7,12 @@ All notable changes to this image are recorded here. The format is loosely based
 ## [Unreleased]
 
 ### Changed
+- The weekly rebuild releases for vulnerabilities in Debian packages only, which a rebuild
+  upgrades. A binary copied or downloaded in changes only with a new pinned version, which
+  Renovate brings as an input change. Before, its findings released an unchanged image on every
+  run. They stay in the Trivy issue.
+
+### Changed
 - The healthcheck runs [container-healthcheck](https://github.com/intechcore/container-healthcheck)
   instead of curl, and curl is no longer in the image. It asks `http://127.0.0.1:8080/` as before.
   `HEALTHCHECK_PORT` and `HEALTHCHECK_PATH` set where it asks.
