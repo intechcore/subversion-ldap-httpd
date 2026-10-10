@@ -116,7 +116,7 @@ Every input change on `main` releases by itself. The image builds on `debian:tri
 The `Rebuild` workflow checks the published `latest` image. It runs every Monday, and on each push to `main` that changes the `Dockerfile`. It releases the next build (`1.14.5-1 → 1.14.5-2`) in these cases:
 
 - The base image digest pinned in `FROM` differs from the `org.opencontainers.image.base.digest` label of the published image. A merged Renovate update releases without a manual step.
-- Trivy finds fixable CRITICAL or HIGH vulnerabilities in the published image.
+- Trivy finds fixable CRITICAL or HIGH vulnerabilities in Debian packages of the published image. A binary copied or downloaded in changes only with a new pinned version, which Renovate brings as an input change.
 - The `Dockerfile` changed since the commit in the `org.opencontainers.image.revision` label of the published image.
 
 One check and release runs at a time, so a burst of pushes never publishes the same change twice. A new Subversion from Debian gets the first build of its version, `-1`.
