@@ -43,6 +43,9 @@ All notable changes to this image are recorded here. The format is loosely based
   keeps one Unreleased section; older per-release sections moved below.
 
 ### Fixed
+- The weekly rebuild stops when it cannot resolve the digest of the base image. Without
+  `pipefail`, a failed lookup gave an empty digest, which the rebuild took for a rebuilt base
+  and released an unchanged image.
 - The release notes compare a release with the last release before it, not with the highest
   version tag. A withdrawn or lower release would otherwise stay the base of every later note,
   as it did in intechcore/openldap.
