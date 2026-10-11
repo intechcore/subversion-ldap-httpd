@@ -47,6 +47,9 @@ All notable changes to this image are recorded here. The format is loosely based
   keeps one Unreleased section; older per-release sections moved below.
 
 ### Fixed
+- The release notes compare a release with the last release before it, not with the highest
+  version tag. A withdrawn or lower release would otherwise stay the base of every later note,
+  as it did in intechcore/openldap.
 - The Rebuild workflow never started since releases are signed: it called the release without
   the `id-token` and `attestations` permissions the release needs. It grants them now.
 - A release counts the git tags as taken build numbers, next to the package tags, and never
