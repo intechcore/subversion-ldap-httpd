@@ -45,8 +45,8 @@ All notable changes to this image are recorded here. The format is loosely based
 ### Fixed
 - `docker stop` stops Apache gracefully. Before, the shell of `apache2ctl` stayed PID 1 and
   ignored the stop signal, so docker killed the container after the grace time. `apache2ctl` now
-  execs Apache, also when a compose file overrides the entrypoint with a shell that runs it. The
-  stop signal is `SIGWINCH`, so running requests finish first.
+  execs Apache, also when a compose file overrides the entrypoint with a shell that runs
+  `exec apache2ctl`. The stop signal is `SIGWINCH`, so running requests finish first.
 - The weekly rebuild stops when it cannot resolve the digest of the base image. Without
   `pipefail`, a failed lookup gave an empty digest, which the rebuild took for a rebuilt base
   and released an unchanged image.

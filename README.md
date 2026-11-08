@@ -49,7 +49,7 @@ Mount your configuration files:
 
 `docker stop` sends `SIGWINCH`, the graceful stop of Apache. Running requests finish first.
 Docker kills the container after 10 seconds. For long checkouts or commits, set a longer
-`stop_grace_period` in the compose file, or pass `docker stop -t <seconds>`.
+`stop_grace_period` in the compose file, or pass `docker stop -t 60 <container>`.
 
 ## Building Locally
 
