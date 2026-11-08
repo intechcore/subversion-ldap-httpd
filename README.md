@@ -34,6 +34,7 @@ services:
 - Python 3 with python-ldap for LDAP sync scripts
 - Runs as non-root user (subversion:1000)
 - Health check with container-healthcheck, no curl in the image
+- Stops gracefully on docker stop (SIGWINCH)
 
 ## Configuration
 
