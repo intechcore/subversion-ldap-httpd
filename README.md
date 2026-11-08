@@ -47,6 +47,10 @@ Mount your configuration files:
 | `/svn/authz/*.authz` | SVN authorization files |
 | `/svn/repos/*` | SVN repositories |
 
+`docker stop` sends `SIGWINCH`, the graceful stop of Apache. Running requests finish first.
+Docker kills the container after 10 seconds. For long checkouts or commits, set a longer
+`stop_grace_period` in the compose file, or pass `docker stop -t <seconds>`.
+
 ## Building Locally
 
 ```bash
