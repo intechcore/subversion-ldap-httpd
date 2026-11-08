@@ -34,6 +34,7 @@ services:
 - Python 3 with python-ldap for LDAP sync scripts
 - Runs as non-root user (subversion:1000)
 - Health check with container-healthcheck, no curl in the image
+- Stops gracefully on docker stop (SIGWINCH)
 
 ## Configuration
 
@@ -45,6 +46,10 @@ Mount your configuration files:
 | `/etc/apache2/sites-enabled/*.conf` | Virtual hosts / SVN locations |
 | `/svn/authz/*.authz` | SVN authorization files |
 | `/svn/repos/*` | SVN repositories |
+
+`docker stop` sends `SIGWINCH`, the graceful stop of Apache. Running requests finish first.
+Docker kills the container after 10 seconds. For long checkouts or commits, set a longer
+`stop_grace_period` in the compose file, or pass `docker stop -t 60 <container>`.
 
 ## Building Locally
 

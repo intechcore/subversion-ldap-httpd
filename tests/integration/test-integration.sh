@@ -18,7 +18,7 @@ CONTAINER="svn-integration-test"
 INTERNAL_URL="http://localhost:8080"
 PASS=0
 FAIL=0
-TOTAL=22
+TOTAL=23
 
 cleanup() {
     echo ""
@@ -134,6 +134,42 @@ if docker run --rm ${PLATFORM:+--platform "$PLATFORM"} --entrypoint "" "$IMAGE" 
 else
     fail "svn binary not found"
 fi
+
+# --- Test 23: docker stop ends Apache gracefully ---
+# Contract: Stops gracefully on docker stop (SIGWINCH)
+# A shell as PID 1 ignores the stop signal, and docker then kills the
+# container with exit code 137. Check the image entrypoint and the form that
+# overrides it with a shell which execs apache2ctl.
+echo "[23/$TOTAL] docker stop ends Apache gracefully"
+STOP_SIGNAL=$(docker inspect --format='{{.Config.StopSignal}}' "$IMAGE" 2>/dev/null || echo "")
+if [[ "$STOP_SIGNAL" = "SIGWINCH" ]]; then
+    pass "STOPSIGNAL is SIGWINCH"
+else
+    fail "STOPSIGNAL is '$STOP_SIGNAL', expected SIGWINCH"
+fi
+for mode in image shell; do
+    STOP_NAME="svn-stop-test-$mode"
+    docker rm -f "$STOP_NAME" > /dev/null 2>&1 || true
+    if [[ "$mode" = "image" ]]; then
+        docker run -d --name "$STOP_NAME" ${PLATFORM:+--platform "$PLATFORM"} "$IMAGE" > /dev/null
+    else
+        docker run -d --name "$STOP_NAME" ${PLATFORM:+--platform "$PLATFORM"} \
+            --entrypoint /bin/bash "$IMAGE" -c 'exec /usr/sbin/apache2ctl -D FOREGROUND' > /dev/null
+    fi
+    for _i in $(seq 1 30); do
+        docker exec "$STOP_NAME" test -s /var/run/apache2/apache2.pid 2> /dev/null && break
+        sleep 1
+    done
+    PID1=$(docker exec "$STOP_NAME" cat /proc/1/comm 2> /dev/null || echo "")
+    docker stop -t 10 "$STOP_NAME" > /dev/null
+    STOP_CODE=$(docker inspect --format='{{.State.ExitCode}}' "$STOP_NAME")
+    docker rm "$STOP_NAME" > /dev/null
+    if [[ "$PID1" = "apache2" ]] && [[ "$STOP_CODE" = "0" ]]; then
+        pass "$mode entrypoint: Apache is PID 1 and stops with exit code 0"
+    else
+        fail "$mode entrypoint: PID 1 is '$PID1', exit code $STOP_CODE (expected apache2 and 0)"
+    fi
+done
 
 # ============================================================
 # Integration tests (container with test fixtures)

@@ -35,6 +35,13 @@ RUN sed -i 's/export APACHE_RUN_USER=www-data/export APACHE_RUN_USER=subversion/
     sed -i 's/export APACHE_RUN_GROUP=www-data/export APACHE_RUN_GROUP=subversion/' /etc/apache2/envvars && \
     sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf
 
+# apache2ctl runs Apache without exec for "-D FOREGROUND", so its shell stays
+# PID 1 and ignores the stop signal. Make it exec Apache. The grep fails the
+# build when a new apache2ctl changes the line.
+# hadolint ignore=SC2016
+RUN sed -i 's|^    \$HTTPD \${APACHE_ARGUMENTS} "\$@"$|    exec $HTTPD ${APACHE_ARGUMENTS} "$@"|' /usr/sbin/apache2ctl && \
+    grep -q '^    exec \$HTTPD \${APACHE_ARGUMENTS} "\$@"$' /usr/sbin/apache2ctl
+
 # Create directories and set permissions
 RUN mkdir -p /svn/repos /var/run/apache2 /var/lock/apache2 && \
     chown -R subversion:subversion /svn && \
@@ -67,6 +74,9 @@ LABEL org.opencontainers.image.revision="${GIT_SHA}" \
       org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.base.name="${BASE_IMAGE}" \
       org.opencontainers.image.base.digest="${BASE_DIGEST}"
+
+# SIGWINCH is the graceful stop of Apache: running requests finish first.
+STOPSIGNAL SIGWINCH
 
 USER 1000:1000
 ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
